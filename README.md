@@ -1,12 +1,6 @@
 👋 Hi, I’m @tim-cools
 
-👀 I’m I'm a psychedelic guide specialized in psilocybin truffles and ayahuasca
-
-🌱 I’m currently learning to spend more time in the real world, not at the computer
-
-💞️ I’m looking to collaborate on making your life better
-
-📫 Get in touch at https://timcools.net
+🍷 Universal Spirituality 🙂
 
 📃 Previous software development presentations https://github.com/tim-cools/soloco-talks
 
