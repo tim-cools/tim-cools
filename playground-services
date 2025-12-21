@@ -1,0 +1,205 @@
+- Cross-platform bi-directional service protocol used inbetween stateful services
+- Services expose an hierarchical structure of service objects
+- Discoverability: connect to any service and application on the network view it's diagnostics and interact with the
+service without knowing the implementation details of the service
+- Live service object browsing, troubleshooting and diagnostics
+- Remote management and troubleshooting
+- Low latency: binary serialization with FlatBuffers?
+- Built in security: encryption, authentication and (fine grained) authorization
+
+Use cases:
+- Smart Industry: services connecting with hardware devices and PLC
+- Smart Homes: home appliances, devices and automation
+- Media: applications, instruments and devices
+- Business-server applications: every business service can expose diagnostics and provide maintenance operations
+
+Notes
+- It's not intended to expose every OO object of a service, rather to expose a carefully crafted API with objects selected for remote usage
+- Comparison: serialization, discoverability, security,
+
+Supported protocols: tcp, udp (discovery), websockets
+
+todo
+- add requestId to response
+- decide to include visualizers or not
+- include pattern matching for Set/Get Properties, ExecuteCommand and SubscribeEvent? (see osc)
+- path separator both / and ' '?
+
+
+
+
+message Envelope
+  request
+    Request[] Requests
+  response
+    Response[] Responses
+
+request Ping
+
+response PingResponse
+  DateTime ServiceStartTime
+  DateTime ServiceCurrentTime
+
+request GetObjects
+  string ParentId
+  bool IncludeObjectTypes
+  bool IncludeIcons
+  int Depth
+
+response GetObjectsResponse
+  ObjectDefinition[] Objects
+
+request GetObjectType
+  string ObjectTypeId
+
+response GetObjectsResponse
+  ObjectDefinition[] Objects
+
+value ObjectDefinition
+  string ParentId
+  string Id
+  string[] ObjectTypeId
+  AuthorizationRight[] AuthorizationRights
+
+request GetValueType
+  string ValueTypeId
+
+value ObjectType
+  string Id
+  string IconId
+  bool HasDesigner
+  EventDefinition[] Events
+  PropertyDefinition[] Properties
+  CommandDefinition[] Commands
+  StreamDefinition[] Streams
+
+value PropertyDefinition
+  string Name
+  PropertyType Type
+  bool ReadOnly
+
+value CommandDefinition
+  string Name
+  CommandReturnType ReturnType
+
+value EventDefinition
+  string Name
+  EventArgumentType ArgumentType
+
+value StreamDefinition
+  string Name
+  StreamDirection Direction
+  string Url? (trp or custom in protocol)
+
+request AddObjectChild
+  string ObjectId
+
+
+request RemoveObjectChild
+
+request GetIcon
+  string IconId
+
+response GetIconResponse
+  string IconId
+  byte[] Bitmap
+
+request GetVisualizer
+  string ObjectTypeId
+
+response GetVisualizerResponse
+  string ObjectTypeId
+  int FrameworkVersion
+  string Control              //react component
+
+request GetPropertyValue
+  string ObjectId
+  string PropertyName
+
+response GetPropertyValueResponse
+  string ObjectId
+  string PropertyName
+  PropertyValue Value
+
+request SetPropertyValue
+  string ObjectId
+  string PropertyName
+  PropertyValue PropertyValue
+
+request ExecuteCommand
+  string ObjectId
+  string CommandName
+  ParameterValue[] ParameterValues
+
+request ExecuteCommandResponse
+  string ObjectId
+  string CommandName
+  CommandReturnValue Value
+
+request SubscribeEvent
+  string ObjectId
+  string EventName
+  ParameterCriteria Criteria
+
+request UnsubscribeEvent
+  string ObjectId
+  string EventName
+
+request ReceiveEvent
+  string ObjectId
+  string EventName
+  EventArgument Argument
+
+
+
+
+discoverability (over UDP)
+----
+
+broadcast RequestAnnouncement
+
+broadcast Announcement
+  Ip6 IpAddress
+  int Port
+
+
+
+
+
+Security
+---
+- Authentication
+- Encryption (handshake, certificates?)
+- Fine-grained authorization (property, command, event level)
+- DevicePairing
+
+
+
+services
+----
+
+
+ServiceManager
+  DateTime ServiceStarted
+  void SaveConfiguration()
+
+Devices
+  Event<DeviceStatus> StatusChanged
+  DeviceStatus Status
+
+
+
+
+OpenMediaControl
+
+request ControlVideo
+
+request SendNote
+request ReceiveNote
+
+
+
+
+
+
+
