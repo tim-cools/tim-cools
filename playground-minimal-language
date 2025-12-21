@@ -161,7 +161,7 @@ serviceObject TimSThermostat : IThermostat, IManageable
   private CheckProgramId(int id)
     var idOutOfRange = id < 0 || id >= ProgramCount
     if idOutOfRange
-      throw new BusinessException(@"id '{id}' out of range 0..{ProgramCount}")
+      throw new BusinessException("idOutOfRange", @"id '{id}' out of range 0..{ProgramCount}")
 
   private process(CancellationToken cancel)
     var port = new SerialPort()
@@ -181,12 +181,12 @@ serviceObject TimSThermostat : IThermostat, IManageable
   private VerifySetpoint(int value)
     var valueOutOfRange = id < minSetpoint || id >= maxSetpoint
     if valueOutOfRange
-      throw new BusinessException(@"Setpoint '{value}' out of range {minSetpoint}..{maxSetpoint}")
+      throw new BusinessException("valueOutOfRange", @"Setpoint '{value}' out of range {minSetpoint}..{maxSetpoint}")
 
 
 
 
-//tryout with TypeScript like type specification
+//tryout with TypeScript like type specification and double white lines
 serviceObject TimSThermostat: IThermostat, IManageable
 
   private const programCount: int = 8
@@ -230,7 +230,7 @@ serviceObject TimSThermostat: IThermostat, IManageable
 
   private CheckProgramId(id: int)
     if idOutOfRange = id < 0 || id >= programCount
-      throw new BusinessException(@"id '{id}' out of range 0..{programCount}")
+      throw new BusinessException("idOutOfRange", @"id '{id}' out of range 0..{programCount}")
 
 
   private process(CancellationToken cancel)
