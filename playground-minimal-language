@@ -1,0 +1,250 @@
+//(draft) playground example code in the minimal programming language of the future
+
+//CQRS DSL from my psychedelic experience project 
+
+enum ScaleOf5
+  One 1
+  Two 2
+  Three 3
+  Four 4
+  Five 5
+
+event OrganisationAdded
+  OrganisationId OrganisationId
+  UserId UserId
+  bool Person
+  string[] Types
+  Name Name
+  string Description
+
+command AddOrganisationContact
+  OrganisationId OrganisationId 
+  UserId UserId 
+  string Type
+  string Value 
+
+command ChangeOrganisationAddress
+  OrganisationId OrganisationId 
+  UserId UserId 
+  Address Address 
+
+command GetNotifications NotificationsResult 
+  UserId UserId   
+  int Page
+
+value NotificationsResult
+  Notification[] Notifications
+  long Page
+  long Total
+  long Last
+
+value Notification
+  DateTime DateTime
+  string Body
+
+event OrganisationReviewReported
+  OrganisationReviewId OrganisationReviewId  
+  UserId UserId  
+  string Reason  
+
+
+
+
+// Pseudo IoT domain
+
+template "serviceObjectContract" "interface"
+template "serviceObject" "class"
+template "serviceValue" "class {value} : ISerializable"
+
+serviceObjectContract IDevice
+  Event<DeviceStatus> StatusChanged
+  DeviceStatus Status
+
+serviceObjectContract IDevicePairing
+  bool CheckPaired()
+  Pair()
+
+serviceValue ThermostatProgram
+  int Id
+  string Name
+  SetPoint[] SetPoints
+
+serviceValue ThermostatProgram
+  Id: int
+  Name: string
+  SetPoints: SetPoint[]
+
+
+//experimental property definition in interfaces
+serviceObjectContract IThermostat : IDevice, IDevicePairing
+  readonly int CurrentProgram
+  readonly int CurrentTemperature
+  readonly int ProgramCount
+  int Setpoint
+
+  ThermostatProgram GetProgram(int id)
+  SetProgram(int id, ThermostatProgram program)
+
+//or better be more consistent with implementation
+serviceObjectContract IThermostat : IDevice, IDevicePairing
+  int CurrentProgram { get }      //c# style
+  int CurrentTemperature (get)    //seems more readable
+  get int ProgramCount            //with prefix
+  get set int Setpoint
+  //int Setpoint (get set)
+
+  ThermostatProgram GetProgram(int id)
+  SetProgram(int id, ThermostatProgram program)
+
+
+
+
+serviceValue Barcode
+  DateTime Timestamp
+  string Type
+  string Barcode
+
+serviceObject IBarcodeScanner
+  Event<Barcode> BarcodeScanned
+
+serviceObject IBoomBox //bluetooth speaker
+  InputStream<Audio> Input
+
+
+
+enum ThermostatMessageType
+  TemperatureChanged,
+  SetpointChanged
+
+
+
+serviceObject TimSThermostat : IThermostat, IManageable
+
+  private const minSetpoint = 14
+  private const maxSetpoint = 40
+  private const programCount = 8
+
+  private int currentProgram = 0
+  private currentSetpoint = 23          //implicit typing
+
+  private Thread loop
+
+  int CurrentProgram
+    get => currentProgram
+
+  int CurrentTemperature
+    get => currentTemperature
+
+  int ProgramCount
+    get => 8
+
+  int Setpoint
+    get => currentSetpoint
+    set =>
+      VerifySetpoint(value)
+      currentSetpoint = value
+
+  OnStart()
+    loop = Thread.Start(process)
+
+  OnStop()
+    loop.AbortAndWait()
+
+  ThermostatProgram GetProgram(int id)
+    CheckProgramId(id)
+    return programs[id]
+
+  SetProgram(int id, ThermostatProgram program)
+    CheckProgramId(id)
+    programs[id] = program
+
+  private CheckProgramId(int id)
+    var idOutOfRange = id < 0 || id >= ProgramCount
+    if idOutOfRange
+      throw new BusinessException(@"id '{id}' out of range 0..{ProgramCount}")
+
+  private process(CancellationToken cancel)
+    var port = new SerialPort()
+
+    while (!cancel.Cancelled)
+      var data = port.ReadData()
+      ProcessData(data)
+
+  private ProcessData(byte[] data)
+    var messageType = GetMessageType(data)
+    switch messageType
+      case ThermostatMessageType.TemperatureChanged
+        ProcessTemperatureChanged(data)
+      case ThermostatMessageType.SetpointChanged
+        ProcessSetpointChanged(data)
+
+  private VerifySetpoint(int value)
+    var valueOutOfRange = id < minSetpoint || id >= maxSetpoint
+    if valueOutOfRange
+      throw new BusinessException(@"Setpoint '{value}' out of range {minSetpoint}..{maxSetpoint}")
+
+
+
+
+//tryout with TypeScript like type specification
+serviceObject TimSThermostat: IThermostat, IManageable
+
+  private const programCount: int = 8
+  private readonly initiated: DateTime
+  private currentProgram: int
+  private currentSetpoint: int
+  private loop: Thread
+
+  CurrentProgram: int
+    get => currentProgram
+
+  CurrentTemperature => currentTemperature
+  ProgramCount => programCount
+
+  Setpoint: int
+    get => currentSetpoint
+    set => SetSetpoint(value)
+
+
+  TimSThermostat()
+    initiated = DateTime.Now
+
+
+  OnStart()
+    loop = Thread.Start(process)
+
+
+  OnStop()
+    loop.AbortAndWait()
+
+
+  GetProgram(id: int): ThermostatProgram
+    CheckProgramId(id)
+    return programs[id]
+
+
+  SetProgram(id: int, program: ThermostatProgram)
+    CheckProgramId(id)
+    programs[id] = program
+
+
+  private CheckProgramId(id: int)
+    if idOutOfRange = id < 0 || id >= programCount
+      throw new BusinessException(@"id '{id}' out of range 0..{programCount}")
+
+
+  private process(CancellationToken cancel)
+    var port = new SerialPort()
+
+    while (!cancel.Cancelled)
+      var data = port.ReadData()
+      ProcessData(data)
+
+
+  private ProcessData(byte[] data)
+    var messageType = GetMessageType(data)
+    switch messageType
+      case ThermostatMessageType.TemperatureChanged
+        ProcessTemperatureChanged(data)
+      case ThermostatMessageType.SetpointChanged
+        ProcessSetpointChanged(data)
