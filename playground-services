@@ -110,7 +110,7 @@ request GetVisualizer
 response GetVisualizerResponse
   string ObjectTypeId
   int FrameworkVersion
-  string Control              //react component
+  string Control              //html, css ? component / url to local web server?
 
 request GetPropertyValue
   string ObjectId
