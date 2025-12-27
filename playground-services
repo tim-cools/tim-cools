@@ -4,7 +4,7 @@
 service without knowing the implementation details of the service
 - Live service object browsing, troubleshooting and diagnostics
 - Remote management and troubleshooting
-- Low latency: binary serialization with FlatBuffers?
+- Low latency: binary serialization with FlatBuffers? (or json)
 - Built in security: encryption, authentication and (fine grained) authorization
 
 Use cases:
