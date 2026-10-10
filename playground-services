@@ -14,7 +14,14 @@ Use cases:
 - Media: applications, instruments and devices
 - Business-server applications: every business service can expose diagnostics and provide maintenance operations
 - Network devices: routers, switches, load balances
-- OS: an OS that supports this from bottom-up fully supports a object API which can be accesses internally or remotely
+- OS: an OS that supports this from bottom-up fully supports a object API which can be accesses direct, via IPC or remotely
+  - hardware status/metrics
+  - devices (install driver/disconnect/...)
+  - processes (start/kill/...)
+  - scheduled jobs
+  - filesystem (virtual object, not an object loaded in memory per file)
+  - settings
+  - applications (installed/running)
 
 Notes
 - It's not intended to expose every OO object of a service, rather to expose a carefully crafted API with objects selected for remote usage
