@@ -1,10 +1,11 @@
 - Cross-platform bi-directional service protocol used inbetween stateful services
 - Services expose an hierarchical structure of service objects
-- Discoverability: connect to any service and application on the network view it's diagnostics and interact with the
+- Discoverability: ask every application, server or device on the netwerk to announce itself, so you have overview of all available services to connect to (udp)  
+- Decoupled: connect to any service and application on the network view it's diagnostics and interact with the
 service without knowing the implementation details of the service
 - Live service object browsing, troubleshooting and diagnostics
 - Remote management and troubleshooting
-- Low latency: binary serialization with FlatBuffers? (or json)
+- Low latency: binary serialization with FlatBuffers/gRPS? (or bson, json)
 - Built in security: encryption, authentication and (fine grained) authorization
 
 Use cases:
@@ -12,6 +13,8 @@ Use cases:
 - Smart Homes: home appliances, devices and automation
 - Media: applications, instruments and devices
 - Business-server applications: every business service can expose diagnostics and provide maintenance operations
+- Network devices: routers, switches, load balances
+- OS: an OS that supports this from bottom-up fully supports a object API which can be accesses internally or remotely
 
 Notes
 - It's not intended to expose every OO object of a service, rather to expose a carefully crafted API with objects selected for remote usage
@@ -21,18 +24,18 @@ Supported protocols: tcp, udp (discovery), websockets
 
 todo
 - add requestId to response
-- decide to include visualizers or not
+- decide which and how to include metadata kind/types, it not 100% yet. is MetaData the right term? 
 - include pattern matching for Set/Get Properties, ExecuteCommand and SubscribeEvent? (see osc)
 - path separator both / and ' '?
 
 
 
 
-message Envelope
-  request
-    Request[] Requests
-  response
-    Response[] Responses
+message RequestEnvelope
+  Request[] Requests
+
+message ResonseEnvelope
+  Response[] Responses
 
 request Ping
 
@@ -43,14 +46,14 @@ response PingResponse
 request GetObjects
   string ParentId
   bool IncludeObjectTypes
-  bool IncludeIcons
-  int Depth
+  MetaDataType[] IncludeMetaDataTypes
+  int IncludeChildrenLevels
 
 response GetObjectsResponse
   ObjectDefinition[] Objects
 
 request GetObjectType
-  string ObjectTypeId
+  string ObjectTypeId                        // "company.application(.version?).type.version" or "standard.version.type"  (version: incremental number or date 20261010)
 
 response GetObjectsResponse
   ObjectDefinition[] Objects
@@ -66,12 +69,12 @@ request GetValueType
 
 value ObjectType
   string Id
-  string IconId
   bool HasDesigner
   EventDefinition[] Events
   PropertyDefinition[] Properties
   CommandDefinition[] Commands
   StreamDefinition[] Streams
+  MetaDataDefinition[] MetaData
 
 value PropertyDefinition
   string Name
@@ -91,26 +94,37 @@ value StreamDefinition
   StreamDirection Direction
   string Url? (trp or custom in protocol)
 
+enum MetaDataKind
+  Icon  
+  View
+  Url
+  Text
+  Binary
+  Gzip
+
+value MetaDataDefinition
+  MetaDataKind Kind
+  string MetaDataType        // eg "bitmap", "webcomponent.react.13", "webcomponent.js", "webcomponent.wasm"
+  string MetaDataId          
+
 request AddObjectChild
   string ObjectId
-
+  //todo
 
 request RemoveObjectChild
+  //todo
 
-request GetIcon
-  string IconId
 
-response GetIconResponse
-  string IconId
-  byte[] Bitmap
-
-request GetVisualizer
+request GetTypeMetaData
   string ObjectTypeId
+  string MetaDataId
 
-response GetVisualizerResponse
+response GetTypeMetaDataResponse
   string ObjectTypeId
-  int FrameworkVersion
-  string Control              //html, css ? component / url to local web server?
+  string MetaDataId
+  string Description
+  string MetaDataType           // eg "bitmap", "webcomponent.react.13", "webcomponent.js", "webcomponent.wasm"
+  byte[] Data
 
 request GetPropertyValue
   string ObjectId
@@ -170,14 +184,18 @@ Security
 ---
 - Authentication
 - Encryption (handshake, certificates?)
-- Fine-grained authorization (property, command, event level)
+- Fine-grained authorization (broadcastn property, command, event level)
 - DevicePairing
 
 
+vizualizers
+---
+- get an API object to interact with the object (and children) remotely
 
-services
+standards: services
 ----
-
+extensible standards (interfaces) should be defined to interact with services/devices. 
+client applications will use typed interface to work with the remote objects, a proxy that call //todo not allowed anymore
 
 ServiceManager
   DateTime ServiceStarted
